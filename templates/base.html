@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LicitOn{% endblock %}</title>
+    <style>
+        :root {
+            --azul-profundo: #0A2342;
+            --ciano-eletrico: #00B4D8;
+            --fundo-neutro: #f4f6f9;
+            --texto-escuro: #333333;
+            --branco: #ffffff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        body { display: flex; height: 100vh; background-color: var(--fundo-neutro); overflow: hidden; }
+
+        /* --- SIDEBAR (Menu Lateral) --- */
+        .sidebar {
+            width: 260px;
+            background-color: var(--azul-profundo);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+        }
+
+        .logo-area { margin-bottom: 40px; text-align: center; }
+        
+        .menu ul { list-style: none; }
+        .menu li { margin-bottom: 10px; }
+        
+        .menu a {
+            display: flex; align-items: center;
+            padding: 12px 15px;
+            color: #b0c4de;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .menu a:hover, .menu a.active {
+            background-color: rgba(255,255,255,0.1);
+            color: var(--ciano-eletrico);
+            padding-left: 20px; /* Efeito de deslize */
+        }
+
+        .menu-icon { margin-right: 12px; width: 20px; text-align: center; }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* Permite rolar se o conteúdo for grande */
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .user-info span { font-weight: bold; color: var(--azul-profundo); }
+        .btn-logout {
+            color: #dc3545; text-decoration: none; font-size: 0.9rem; margin-left: 20px; border: 1px solid #dc3545; padding: 5px 15px; border-radius: 20px; transition: 0.3s;
+        }
+        .btn-logout:hover { background: #dc3545; color: white; }
+
+        /* Área Dinâmica */
+        .content-wrapper { padding: 30px; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <div class="logo-area">
+            <svg width="140" height="45" viewBox="0 0 220 70" xmlns="http://www.w3.org/2000/svg">
+                <text x="0" y="55" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="60" fill="#ffffff">Licit</text>
+                <circle cx="155" cy="35" r="22" fill="#00B4D8" />
+                <circle cx="155" cy="35" r="7" fill="#0A2342" />
+                <text x="180" y="55" font-family="'Segoe UI', sans-serif" font-weight="900" font-size="60" fill="#ffffff">n</text>
+            </svg>
+        </div>
+
+        <div class="menu">
+            <ul>
+                <li>
+                    <a href="{% url 'dashboard' %}" 
+                       class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                        <span class="menu-icon">📊</span> Dashboard
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{% url 'listar_licitacoes' %}" 
+                       class="{% if request.resolver_match.url_name == 'listar_licitacoes' %}active{% endif %}">
+                        <span class="menu-icon">🚀</span> Licitações
+                    </a>
+                </li>
+
+                <li><a href="#"><span class="menu-icon">🏢</span> Clientes/Órgãos</a></li>
+                <li><a href="#"><span class="menu-icon">📄</span> Relatórios</a></li>
+                <li><a href="#"><span class="menu-icon">⚙️</span> Configurações</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <header class="top-bar">
+            <h3>Visão Geral</h3>
+            <div class="user-info">
+                Olá, <span>{{ user.first_name|default:user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
+            </div>
+        </header>
+
+        <div class="content-wrapper">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </main>
+
+</body>
+</html>

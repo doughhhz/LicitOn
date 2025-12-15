@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Licitação - LicitOn{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        max-width: 800px;
+        margin: 0 auto; /* Centraliza na tela */
+    }
+
+    .form-group { margin-bottom: 20px; }
+    
+    label { 
+        display: block; 
+        margin-bottom: 8px; 
+        font-weight: 600; 
+        color: var(--azul-profundo); 
+    }
+
+    /* Estilo dos campos gerados pelo Django */
+    .form-input, .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e1e1e1;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: 0.3s;
+    }
+
+    .form-input:focus, .form-control:focus {
+        border-color: var(--ciano-eletrico);
+        outline: none;
+    }
+
+    .btn-salvar {
+        background-color: #28a745;
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+        width: 100%;
+    }
+    .btn-salvar:hover { background-color: #218838; transform: translateY(-2px); }
+    
+    .btn-cancelar {
+        display: inline-block;
+        margin-top: 10px;
+        text-decoration: none;
+        color: #666;
+        text-align: center;
+        width: 100%;
+    }
+</style>
+
+<div class="form-container">
+    <h2 style="margin-bottom: 25px; color: var(--azul-profundo);">📝 Nova Licitação</h2>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+                <small style="color: #999;">{{ field.help_text }}</small>
+            {% endif %}
+            {% if field.errors %}
+                <div style="color: red; font-size: 0.9rem;">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-salvar">Salvar Licitação</button>
+        <a href="{% url 'listar_licitacoes' %}" class="btn-cancelar">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

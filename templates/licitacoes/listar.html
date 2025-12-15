@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Minhas Licitações - LicitOn{% endblock %}
+
+{% block content %}
+<style>
+    /* Estilos da Tabela */
+    .table-container {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+
+    .header-action {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .btn-novo {
+        background-color: var(--ciano-eletrico);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+    .btn-novo:hover { background-color: var(--azul-profundo); }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    
+    th { text-align: left; padding: 15px; color: #666; font-size: 0.85rem; border-bottom: 2px solid #f0f0f0; }
+    td { padding: 15px; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 0.95rem; }
+    
+    tr:hover { background-color: #f9f9f9; }
+
+    /* Badges de Status (Etiquetas Coloridas) */
+    .badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    
+    .status-novo { background-color: #e3f2fd; color: #0d47a1; } /* Azul */
+    .status-ganhamos { background-color: #d4edda; color: #155724; } /* Verde */
+    .status-perdemos { background-color: #f8d7da; color: #721c24; } /* Vermelho */
+    .status-analise { background-color: #fff3cd; color: #856404; } /* Amarelo */
+    .status-padrao { background-color: #e2e3e5; color: #383d41; } /* Cinza */
+
+</style>
+
+<div class="table-container">
+    <div class="header-action">
+        <h2>📂 Todas as Licitações</h2>
+        <a href="{% url 'criar_licitacao' %}" class="btn-novo">+ Nova Licitação</a>
+    </div>
+
+    {% if licitacoes %}
+    <table>
+        <thead>
+            <tr>
+                <th>EDITAL</th>
+                <th>ÓRGÃO / CLIENTE</th>
+                <th>DATA DISPUTA</th>
+                <th>VALOR ESTIMADO</th>
+                <th>STATUS</th>
+                <th>AÇÕES</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for licitacao in licitacoes %}
+            <tr>
+                <td style="font-weight: bold; color: var(--azul-profundo);">{{ licitacao.titulo }}</td>
+                <td>{{ licitacao.orgao }}</td>
+                <td>{{ licitacao.data_abertura|date:"d/m/Y H:i" }}</td>
+                <td>
+                    {% if licitacao.valor_estimado %}
+                        R$ {{ licitacao.valor_estimado|floatformat:2|intcomma }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="badge 
+                        {% if licitacao.status == 'novo' %}status-novo
+                        {% elif licitacao.status == 'ganhamos' %}status-ganhamos
+                        {% elif licitacao.status == 'perdemos' %}status-perdemos
+                        {% elif licitacao.status == 'analise' %}status-analise
+                        {% else %}status-padrao{% endif %}">
+                        {{ licitacao.get_status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">Ver / Editar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p style="text-align: center; color: #666; padding: 20px;">Nenhuma licitação cadastrada ainda.</p>
+    {% endif %}
+</div>
+{% endblock %}

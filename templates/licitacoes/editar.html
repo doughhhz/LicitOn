@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Licitação - LicitOn{% endblock %}
+
+{% block content %}
+<style>
+    .form-container {
+        background: white;
+        padding: 30px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .form-group { margin-bottom: 20px; }
+    label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--azul-profundo); }
+    .form-input, .form-control { width: 100%; padding: 12px; border: 2px solid #e1e1e1; border-radius: 8px; font-size: 1rem; }
+    
+    .btn-salvar {
+        background-color: var(--ciano-eletrico);
+        color: white; padding: 12px 30px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%;
+    }
+    .btn-cancelar { display: block; margin-top: 15px; text-align: center; color: #666; text-decoration: none; }
+    
+    .btn-excluir {
+    display: block;
+    width: 100%;
+    text-align: center;
+    background-color: white;
+    color: #dc3545; /* Vermelho */
+    border: 2px solid #dc3545;
+    padding: 10px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    margin-top: 20px;
+    transition: 0.3s;
+    }
+    .btn-excluir:hover {
+        background-color: #dc3545;
+        color: white;
+    }
+    /* Header com Status */
+    .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .status-tag { background: #eee; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+</style>
+
+<div class="form-container">
+    <div class="edit-header">
+        <h2 style="color: var(--azul-profundo);">✏️ Editando: {{ licitacao.titulo }}</h2>
+        <span class="status-tag">Atual: {{ licitacao.get_status_display }}</span>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        {% for field in form %}
+        <div class="form-group">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <div style="color: red;">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        <button type="submit" class="btn-salvar">Salvar Alterações</button>
+
+        <a href="{% url 'excluir_licitacao' licitacao.id %}"
+            class="btn-excluir"
+            onclick="return confirm('Tem certeza que deseja excluir esta licitação permanentemente?');">
+            🗑️ Excluir Licitação
+        </a>
+        
+        <a href="{% url 'listar_licitacoes' %}" class="btn-cancelar">Voltar para a lista</a>
+    </form>
+</div>
+{% endblock %}

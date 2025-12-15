@@ -2,6 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout # <--- Novos imports
+from django.contrib.auth.decorators import login_required # Importante!
+from django.db.models import Sum # <--- Para somar valores
+from licitacoes.models import Licitacao # <--- Importamos nosso modelo!
 
 # View de Cadastro (Mantenha como estava)
 def register_view(request):
@@ -60,3 +63,31 @@ def logout_view(request):
     logout(request)
     messages.info(request, 'Você saiu do sistema.')
     return redirect('login')
+
+@login_required
+def dashboard_view(request):
+    print("--- INICIANDO O DASHBOARD ---") # Vai aparecer no terminal
+    
+    # 1. Total
+    total_licitacoes = Licitacao.objects.count()
+    print(f"Total encontrado: {total_licitacoes}")
+
+    # 2. Soma (Ganho)
+    soma = Licitacao.objects.filter(status='ganhamos').aggregate(Sum('valor_estimado'))
+    total_ganho = soma['valor_estimado__sum']
+    print(f"Soma bruta do banco: {total_ganho}")
+
+    if total_ganho is None:
+        total_ganho = 0
+    
+    # 3. Pendentes
+    pendentes = Licitacao.objects.filter(status__in=['analise', 'documentacao']).count()
+    print(f"Pendentes: {pendentes}")
+
+    contexto = {
+        'total_licitacoes': total_licitacoes,
+        'total_ganho': total_ganho,
+        'pendentes': pendentes
+    }
+    
+    return render(request, 'dashboard.html', contexto)

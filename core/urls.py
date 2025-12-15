@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import HttpResponse # Importe isso
+from accounts.views import dashboard_view # Importe a view nova aqui
 
 # Função provisória só para teste
 def dashboard_temp(request):
@@ -9,5 +10,6 @@ def dashboard_temp(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('accounts.urls')),
-    path('dashboard/', dashboard_temp, name='dashboard'), # Rota temporária
+    path('dashboard/', dashboard_view, name='dashboard'),
+    path('licitacoes/', include('licitacoes.urls')),
 ]
