@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Clientes - LicitOn{% endblock %}
+
+{% block content %}
+<style>
+    .header-action { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .table-container { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 15px; border-bottom: 2px solid #eee; color: #666; }
+    td { padding: 15px; border-bottom: 1px solid #eee; }
+    .btn-novo { background-color: var(--azul-profundo); color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; }
+</style>
+
+<div class="table-container">
+    <div class="header-action">
+        <h2>🏢 Base de Clientes e Órgãos</h2>
+        <a href="{% url 'cadastrar_cliente' %}" class="btn-novo">+ Novo Cliente</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>NOME / ÓRGÃO</th>
+                <th>CNPJ</th>
+                <th>TELEFONE</th>
+                <th>CIDADE</th>
+                <th>PORTAL</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cliente in clientes %}
+            <tr>
+                <td style="font-weight: bold; color: var(--azul-profundo);">{{ cliente.nome }}</td>
+                <td>{{ cliente.cnpj|default:"-" }}</td>
+                <td>{{ cliente.telefone|default:"-" }}</td>
+                <td>{{ cliente.endereco|default:"-" }}</td>
+                <td>{{ cliente.portal_padrao|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px; color: #999;">
+                    Nenhum cliente cadastrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

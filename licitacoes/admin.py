@@ -1,16 +1,18 @@
 from django.contrib import admin
-from .models import Licitacao
+from .models import Licitacao, Anexo, Cliente # <--- Importe Cliente
+
+class AnexoInline(admin.TabularInline):
+    model = Anexo
+    extra = 1
 
 @admin.register(Licitacao)
 class LicitacaoAdmin(admin.ModelAdmin):
-    # Colunas que vão aparecer na lista
-    list_display = ('titulo', 'orgao', 'data_abertura', 'valor_estimado', 'status', 'responsavel')
-    
-    # Filtros laterais (muito útil!)
-    list_filter = ('status', 'modalidade', 'responsavel')
-    
-    # Barra de pesquisa
-    search_fields = ('titulo', 'orgao', 'objeto')
-    
-    # Navegação por data
-    date_hierarchy = 'data_abertura'
+    list_display = ('titulo', 'cliente', 'data_abertura', 'status') # Troquei orgao por cliente
+    search_fields = ('titulo', 'cliente__nome')
+    inlines = [AnexoInline]
+
+# REGISTRA A NOVA TABELA
+@admin.register(Cliente)
+class ClienteAdmin(admin.ModelAdmin):
+    list_display = ('nome', 'cnpj', 'telefone', 'endereco')
+    search_fields = ('nome', 'cnpj')

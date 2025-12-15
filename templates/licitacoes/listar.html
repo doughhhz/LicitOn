@@ -175,7 +175,13 @@
             <tr>
                 <td style="font-weight: bold; color: var(--azul-profundo);">{{ licitacao.titulo }}</td>
                 
-                <td>{{ licitacao.orgao }}</td>
+                <td>
+                    {% if licitacao.cliente %}
+                        <strong style="color: var(--azul-profundo);">{{ licitacao.cliente.nome }}</strong>
+                    {% else %}
+                        {{ licitacao.orgao|default:"-" }}
+                    {% endif %}
+                </td>
                 
                 <td>{{ licitacao.data_abertura|date:"d/m/Y H:i" }}</td>
                 

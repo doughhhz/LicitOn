@@ -1,6 +1,27 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+class Cliente(models.Model):
+    nome = models.CharField("Nome do Órgão / Cliente", max_length=200)
+    cnpj = models.CharField("CNPJ", max_length=20, blank=True, null=True)
+    telefone = models.CharField("Telefone", max_length=20, blank=True, null=True)
+    email = models.EmailField("Email do Setor", blank=True, null=True)
+    endereco = models.CharField("Endereço / Cidade", max_length=300, blank=True, null=True)
+    
+    # Informações extras
+    portal_padrao = models.CharField("Portal Utilizado", max_length=100, blank=True, null=True, help_text="Ex: Comprasnet")
+    observacoes = models.TextField("Observações", blank=True, null=True)
+
+    criado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.nome
+
+    class Meta:
+        verbose_name = "Cliente / Órgão"
+        verbose_name_plural = "Clientes / Órgãos"
+        ordering = ['nome']
+
 class Licitacao(models.Model):
     # Opções para menus (Dropdowns)
     STATUS_CHOICES = [
@@ -26,6 +47,8 @@ class Licitacao(models.Model):
 
     # Campos Principais
     titulo = models.CharField("Identificador / Nº Edital", max_length=100, help_text="Ex: PE 90/2025")
+    # NOVO CAMPO: Conexão com a tabela de Clientes
+    cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Órgão (Cadastro)")
     orgao = models.CharField("Órgão / Cliente", max_length=200, help_text="Ex: Prefeitura de Ponta Grossa")
     objeto = models.TextField("Objeto da Licitação", help_text="O que está sendo comprado?")
     

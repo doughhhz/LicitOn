@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block title %}Novo Cliente - LicitOn{% endblock %}
+
+{% block content %}
+<style>
+    .form-container { background: white; padding: 30px; border-radius: 12px; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--azul-profundo); }
+    .form-input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    .btn-salvar { background-color: #28a745; color: white; padding: 12px; width: 100%; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+</style>
+
+<div class="form-container">
+    <h2 style="margin-bottom: 20px; color: var(--azul-profundo);">🏢 Novo Cliente</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn-salvar">Salvar Cliente</button>
+        <a href="{% url 'listar_clientes' %}" style="display:block; text-align:center; margin-top:15px; color:#666; text-decoration:none;">Cancelar</a>
+    </form>
+</div>
+{% endblock %}

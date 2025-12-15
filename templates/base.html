@@ -107,7 +107,12 @@
                     </a>
                 </li>
 
-                <li><a href="#"><span class="menu-icon">🏢</span> Clientes/Órgãos</a></li>
+                <li>
+                    <a href="{% url 'listar_clientes' %}" 
+                    class="{% if 'clientes' in request.path %}active{% endif %}">
+                        <span class="menu-icon">🏢</span> Clientes/Órgãos
+                    </a>
+                </li>
                 <li><a href="#"><span class="menu-icon">📄</span> Relatórios</a></li>
                 <li><a href="#"><span class="menu-icon">⚙️</span> Configurações</a></li>
             </ul>

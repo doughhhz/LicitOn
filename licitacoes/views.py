@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Licitacao
-from .forms import LicitacaoForm, AnexosFormSet
+from .models import Licitacao, Anexo, Cliente
+from .forms import LicitacaoForm, AnexosFormSet, ClienteForm
 from django.db.models import Q
 
 @login_required
@@ -81,3 +81,22 @@ def excluir_licitacao(request, id):
     licitacao = get_object_or_404(Licitacao, pk=id)
     licitacao.delete() # Deleta do banco de dados
     return redirect('listar_licitacoes') # Volta para a lista
+
+# --- MÓDULO DE CLIENTES ---
+
+@login_required
+def listar_clientes(request):
+    clientes = Cliente.objects.all().order_by('nome')
+    return render(request, 'clientes/listar.html', {'clientes': clientes})
+
+@login_required
+def cadastrar_cliente(request):
+    if request.method == 'POST':
+        form = ClienteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('listar_clientes')
+    else:
+        form = ClienteForm()
+    
+    return render(request, 'clientes/cadastrar.html', {'form': form})
