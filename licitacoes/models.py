@@ -43,11 +43,16 @@ class Licitacao(models.Model):
     ]
 
     # Arquivo Principal (Edital)
+    # Mantemos o upload caso você queira subir manualmente
     arquivo = models.FileField("Edital / Arquivo", upload_to='editais/', blank=True, null=True)
+    
+    # NOVO CAMPO: Para guardar o link original que vem no JSON
+    url_origem = models.URLField("URL do Edital", max_length=500, blank=True, null=True)
 
     # Campos Principais
     titulo = models.CharField("Identificador / Nº Edital", max_length=100, help_text="Ex: PE 90/2025")
-    # NOVO CAMPO: Conexão com a tabela de Clientes
+    
+    # Conexão com a tabela de Clientes
     cliente = models.ForeignKey(Cliente, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Órgão (Cadastro)")
     orgao = models.CharField("Órgão / Cliente", max_length=200, help_text="Ex: Prefeitura de Ponta Grossa")
     objeto = models.TextField("Objeto da Licitação", help_text="O que está sendo comprado?")
@@ -57,8 +62,13 @@ class Licitacao(models.Model):
     portal = models.CharField("Portal", max_length=100, blank=True, null=True, help_text="Ex: Comprasnet, Licitações-e")
     
     # Datas e Valores
-    data_abertura = models.DateTimeField("Data da Disputa")
+    # O JSON traz 'data_inicial', vamos mapear para 'data_abertura' na importação
+    data_abertura = models.DateTimeField("Data da Disputa", null=True, blank=True)
     valor_estimado = models.DecimalField("Valor Estimado (R$)", max_digits=15, decimal_places=2, blank=True, null=True)
+
+    uasg = models.CharField(max_length=20, null=True, blank=True)
+
+    origem = models.CharField(max_length=50, default='MANUAL') # Para saber se veio da Importação
     
     # Gestão
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='novo')
@@ -76,13 +86,34 @@ class Licitacao(models.Model):
         verbose_name_plural = "Licitações"
         ordering = ['-data_abertura']
 
+# --- NOVA TABELA: ITENS DA LICITAÇÃO ---
+class ItemLicitacao(models.Model):
+    licitacao = models.ForeignKey(Licitacao, on_delete=models.CASCADE, related_name='itens')
+    codigo = models.IntegerField(verbose_name="Item")
+    grupo = models.CharField(max_length=50, blank=True, null=True)
+    objeto = models.TextField("Descrição do Item")
+    quantidade = models.CharField(max_length=50) # CharField pois o JSON pode trazer unidades mistas
+    unidade = models.CharField(max_length=50, blank=True, null=True)
 
-# --- ATENÇÃO: A CLASSE ANEXO COMEÇA AQUI, ENCOSTADA NA MARGEM ESQUERDA ---
+    def __str__(self):
+        return f"Item {self.codigo} - {self.licitacao.titulo}"
+
+    class Meta:
+        verbose_name = "Item da Licitação"
+        verbose_name_plural = "Itens da Licitação"
+        ordering = ['codigo']
+
+# --- TABELA DE ANEXOS ATUALIZADA ---
 class Anexo(models.Model):
-    # O conteúdo da classe tem indentação (TAB)
     licitacao = models.ForeignKey(Licitacao, on_delete=models.CASCADE, related_name='anexos')
-    arquivo = models.FileField("Arquivo Anexo", upload_to='anexos/')
-    descricao = models.CharField("Nome do Arquivo", max_length=100, help_text="Ex: Planilha de Custos, Projeto Básico")
+    
+    # Agora aceita nulo, pois na importação automática teremos apenas URL
+    arquivo = models.FileField("Arquivo Anexo", upload_to='anexos/', blank=True, null=True)
+    
+    # NOVO CAMPO: Link para o anexo remoto
+    url = models.URLField("Link do Anexo", max_length=500, blank=True, null=True)
+    
+    descricao = models.CharField("Nome do Arquivo", max_length=255, help_text="Ex: Planilha de Custos, Projeto Básico")
     enviado_em = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -1,7 +1,12 @@
+import json
+from datetime import datetime
+from django.contrib import messages
+from django.utils import timezone
+from django.utils.timezone import make_aware
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from .models import Licitacao, Anexo, Cliente
-from .forms import LicitacaoForm, AnexosFormSet, ClienteForm, RelatorioForm
+from .models import Licitacao, Anexo, Cliente, ItemLicitacao
+from .forms import LicitacaoForm, AnexosFormSet, ClienteForm, RelatorioForm, ImportacaoJsonForm
 from django.db.models import Q, Sum
 
 @login_required
@@ -39,6 +44,106 @@ def listar_licitacoes(request):
     }
     
     return render(request, 'licitacoes/listar.html', contexto)
+
+def importar_licitacoes(request):
+    if request.method == 'POST':
+        form = ImportacaoJsonForm(request.POST, request.FILES)
+        if form.is_valid():
+            arquivo = request.FILES['arquivo_json']
+            
+            try:
+                dados = json.load(arquivo)
+                contador = 0
+                
+                # Mapa para converter o texto do JSON nas chaves do seu banco
+                MAPA_MODALIDADE = {
+                    'Pregão Eletrônico': 'pregao_eletronico',
+                    'Pregão Presencial': 'pregao_presencial',
+                    'Concorrência': 'concorrencia',
+                    'Dispensa de Licitação': 'dispensa',
+                    'Cotação Eletrônica': 'cotacao'
+                }
+
+                for entry in dados:
+                    # --- 1. Tratamento de Datas ---
+                    # O JSON vem como "24/11/2025 08:00:00"
+                    data_abertura = None
+                    if entry.get('data_inicial'):
+                        try:
+                            dt_naive = datetime.strptime(entry.get('data_inicial'), "%d/%m/%Y %H:%M:%S")
+                            data_abertura = make_aware(dt_naive) # Adiciona fuso horário
+                        except ValueError:
+                            pass
+
+                    # --- 2. Busca ou Cria o Cliente ---
+                    nome_cliente = entry.get('entidade', 'Desconhecido').upper()
+                    # Salva a UF no endereço se o cliente for novo
+                    cliente_obj, created = Cliente.objects.get_or_create(
+                        nome=nome_cliente,
+                        defaults={'endereco': f"UF: {entry.get('uf', '')}"}
+                    )
+
+                    # --- 3. Prepara Modalidade ---
+                    modalidade_txt = entry.get('modalidade', '')
+                    modalidade_db = MAPA_MODALIDADE.get(modalidade_txt, 'pregao_eletronico')
+
+                    # --- 4. Salva a Licitação ---
+                    # Usamos update_or_create para não duplicar se importar o mesmo arquivo 2x
+                    licitacao, created = Licitacao.objects.update_or_create(
+                        titulo=entry.get('pregao'), # Usa o número do pregão como identificador
+                        cliente=cliente_obj,
+                        defaults={
+                            'orgao': nome_cliente,
+                            'uasg': entry.get('uasg'),
+                            'url_origem': entry.get('url'),
+                            'objeto': entry.get('objeto'),
+                            'modalidade': modalidade_db,
+                            'portal': entry.get('portal'),
+                            'data_abertura': data_abertura,
+                            'origem': 'IMPORTACAO_JSON',
+                            # Se for novo, status é 'novo', senão mantém o atual
+                        }
+                    )
+
+                    # --- 5. Salva Itens e Anexos ---
+                    if licitacao:
+                        # Limpa itens/anexos antigos para garantir sincronia com o JSON
+                        licitacao.itens.all().delete()
+                        licitacao.anexos.all().delete()
+
+                        # Itens
+                        for item in entry.get('itens', []):
+                            ItemLicitacao.objects.create(
+                                licitacao=licitacao,
+                                codigo=item.get('codigo'),
+                                grupo=item.get('grupo'),
+                                objeto=item.get('objeto'),
+                                quantidade=item.get('quantidade'),
+                                unidade=item.get('unidade')
+                            )
+
+                        # Anexos (Links)
+                        for anexo in entry.get('anexos', []):
+                            Anexo.objects.create(
+                                licitacao=licitacao,
+                                descricao=anexo.get('nome'),
+                                url=anexo.get('url')
+                                # Campo 'arquivo' fica vazio pois é link
+                            )
+                        
+                        contador += 1
+
+                messages.success(request, f"Sucesso! {contador} licitações foram importadas/atualizadas.")
+                return redirect('dashboard') # Redireciona para sua página inicial
+
+            except json.JSONDecodeError:
+                messages.error(request, "O arquivo enviado não é um JSON válido.")
+            except Exception as e:
+                messages.error(request, f"Erro ao processar: {str(e)}")
+    else:
+        form = ImportacaoJsonForm()
+
+    return render(request, 'licitacoes/importar.html', {'form': form})
 
 @login_required
 def criar_licitacao(request):

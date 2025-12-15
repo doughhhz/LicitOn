@@ -45,7 +45,13 @@
     .btn-limpar { display: flex; align-items: center; color: #666; text-decoration: none; font-size: 0.9rem; padding: 0 10px; }
     .btn-limpar:hover { color: #dc3545; }
 
-    /* --- NOVO: BOTÃO DE DOCUMENTOS --- */
+    /* --- BOTÕES DE DOCUMENTOS --- */
+    .btn-group-docs {
+        display: flex;
+        gap: 5px;
+        flex-direction: column; /* Empilha se tiver muitos */
+    }
+    
     .btn-docs {
         background-color: white;
         border: 1px solid #ddd;
@@ -58,20 +64,26 @@
         display: flex;
         align-items: center;
         gap: 5px;
+        text-decoration: none;
+        width: fit-content;
     }
     .btn-docs:hover {
         background-color: #f0f0f0;
         border-color: #bbb;
         color: #333;
     }
+    .btn-edital-main {
+        border-color: var(--ciano-eletrico);
+        color: var(--azul-profundo);
+    }
 
-    /* --- NOVO: MODAL ESTILO VIDRO (GLASSMORPHISM) --- */
+    /* --- MODAL ESTILO VIDRO --- */
     .modal-backdrop {
-        display: none; /* Escondido por padrão */
+        display: none;
         position: fixed;
         top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0, 0, 0, 0.4); /* Escurece o fundo */
-        backdrop-filter: blur(8px); /* O EFEITO DE DESFOQUE MÁGICO */
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(8px);
         z-index: 9999;
         justify-content: center;
         align-items: center;
@@ -104,6 +116,8 @@
         list-style: none;
         padding: 0;
         margin-top: 15px;
+        max-height: 300px; /* Scroll se tiver muitos anexos */
+        overflow-y: auto;
     }
 
     .doc-item {
@@ -205,13 +219,23 @@
                 </td>
 
                 <td>
-                    {% if licitacao.anexos.exists %}
-                        <button class="btn-docs" onclick="abrirModal('modal-{{ licitacao.id }}')">
-                            📂 Documentos ({{ licitacao.anexos.count }})
-                        </button>
-                    {% else %}
-                        <span style="color: #ccc; font-size: 0.85rem;">Sem arquivos</span>
-                    {% endif %}
+                    <div class="btn-group-docs">
+                        {% if licitacao.arquivo %}
+                            <a href="{{ licitacao.arquivo.url }}" target="_blank" class="btn-docs btn-edital-main" title="Baixar Edital">
+                                📜 Edital Principal
+                            </a>
+                        {% elif licitacao.url_origem %}
+                            <a href="{{ licitacao.url_origem }}" target="_blank" class="btn-docs btn-edital-main" title="Abrir Link Original">
+                                🔗 Link Edital
+                            </a>
+                        {% endif %}
+
+                        {% if licitacao.anexos.exists %}
+                            <button class="btn-docs" onclick="abrirModal('modal-{{ licitacao.id }}')">
+                                📎 Anexos ({{ licitacao.anexos.count }})
+                            </button>
+                        {% endif %}
+                    </div>
 
                     <div id="modal-{{ licitacao.id }}" class="modal-backdrop" onclick="fecharNoFundo(event, 'modal-{{ licitacao.id }}')">
                         <div class="modal-content">
@@ -223,14 +247,19 @@
                             <ul class="doc-list">
                                 {% for anexo in licitacao.anexos.all %}
                                 <li>
-                                    <a href="{{ anexo.arquivo.url }}" target="_blank" style="text-decoration: none;">
+                                    <a href="{% if anexo.arquivo %}{{ anexo.arquivo.url }}{% else %}{{ anexo.url }}{% endif %}" 
+                                       target="_blank" style="text-decoration: none;">
                                         <div class="doc-item">
-                                            <span class="doc-icon">📎</span>
+                                            <span class="doc-icon">
+                                                {% if anexo.arquivo %}📄{% else %}🔗{% endif %}
+                                            </span>
                                             <div class="doc-info">
                                                 <span class="doc-name">{{ anexo.descricao }}</span>
-                                                <span class="doc-type">Documento Anexo</span>
+                                                <span class="doc-type">
+                                                    {% if anexo.arquivo %}Arquivo Interno{% else %}Link Externo{% endif %}
+                                                </span>
                                             </div>
-                                            <span style="color: var(--ciano-eletrico);">⬇ Baixar</span>
+                                            <span style="color: var(--ciano-eletrico);">⬇ Acessar</span>
                                         </div>
                                     </a>
                                 </li>
@@ -238,7 +267,7 @@
                             </ul>
                         </div>
                     </div>
-                    </td>
+                </td>
 
                 <td>
                     <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">

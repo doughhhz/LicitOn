@@ -40,6 +40,13 @@ class ClienteForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs.update({'class': 'form-input'})
 
+class ImportacaoJsonForm(forms.Form):
+    arquivo_json = forms.FileField(
+        label="Selecione o arquivo JSON",
+        help_text="Faça upload do arquivo diário de licitações (.json)",
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control', 'accept': '.json'})
+    )
+
 class RelatorioForm(forms.Form):
     data_inicio = forms.DateField(
         label="De:",

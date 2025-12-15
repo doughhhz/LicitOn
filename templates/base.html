@@ -119,6 +119,13 @@
                         <span class="menu-icon">📄</span> Relatórios
                     </a>
                 </li>
+
+                <li>
+                    <a href="{% url 'importar_licitacoes' %}"
+                    class="{% if 'importar' in request.path %}active{% endif %}">
+                        <span class="menu-icon">🏢</span> Importar Licitações
+                    </a>
+                </li>
                 <li><a href="#"><span class="menu-icon">⚙️</span> Configurações</a></li>
             </ul>
         </div>
