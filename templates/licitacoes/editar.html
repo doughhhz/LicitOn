@@ -102,26 +102,14 @@
         {% endfor %}
 
         <details class="docs-accordion">
-            <summary>📂 Documentos & Anexos (Clique para Gerenciar)</summary>
+            <summary>📂 Documentos do Processo (Clique para Gerenciar)</summary>
             
             <div class="docs-content">
                 
-                <div class="anexo-card" style="border-left: 4px solid var(--ciano-eletrico);">
-                    <div style="flex: 1;">
-                        <label>📄 Edital Principal / Arquivo Mestre</label>
-                        {{ form.arquivo }}
-                        {% if licitacao.arquivo %}
-                            <small style="display:block; margin-top:5px;">
-                                Atual: <a href="{{ licitacao.arquivo.url }}" target="_blank">{{ licitacao.arquivo.name }}</a>
-                            </small>
-                        {% endif %}
-                    </div>
-                </div>
+                <p style="color: #666; font-size: 0.9rem; margin-bottom: 15px;">
+                    Adicione aqui o Edital, Propostas, Contratos e qualquer outro documento.
+                </p>
 
-                <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
-
-                <h4 style="margin-bottom: 15px; color: #666;">Anexos Extras (Planilhas, Mapas, etc)</h4>
-                
                 {{ formset.management_form }}
 
                 {% for anexo_form in formset %}
@@ -132,7 +120,7 @@
 
                         <div class="anexo-card">
                             <div style="flex: 1; min-width: 200px;">
-                                <label>Nome do Anexo:</label>
+                                <label>Descrição do Arquivo:</label>
                                 {{ anexo_form.descricao }} 
                             </div>
                             
@@ -142,7 +130,7 @@
                                 
                                 {% if anexo_form.instance.pk and anexo_form.instance.arquivo %}
                                     <small style="display:block; margin-top:5px; color: #28a745;">
-                                        ✅ Arquivo salvo: <a href="{{ anexo_form.instance.arquivo.url }}" target="_blank">Ver arquivo</a>
+                                        ✅ Salvo: <a href="{{ anexo_form.instance.arquivo.url }}" target="_blank">Ver documento</a>
                                     </small>
                                 {% endif %}
                             </div>

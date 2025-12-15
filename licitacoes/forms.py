@@ -6,7 +6,7 @@ from .models import Licitacao, Anexo
 class LicitacaoForm(forms.ModelForm):
     class Meta:
         model = Licitacao
-        fields = ['titulo', 'orgao', 'objeto', 'modalidade', 'portal', 'data_abertura', 'valor_estimado', 'status', 'responsavel', 'arquivo']
+        fields = ['titulo', 'orgao', 'objeto', 'modalidade', 'portal', 'data_abertura', 'valor_estimado', 'status', 'responsavel']
         
         # Vamos deixar os campos bonitos com CSS
         widgets = {

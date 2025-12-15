@@ -174,13 +174,19 @@
             {% for licitacao in licitacoes %}
             <tr>
                 <td style="font-weight: bold; color: var(--azul-profundo);">{{ licitacao.titulo }}</td>
+                
                 <td>{{ licitacao.orgao }}</td>
+                
                 <td>{{ licitacao.data_abertura|date:"d/m/Y H:i" }}</td>
+                
                 <td>
                     {% if licitacao.valor_estimado %}
                         R$ {{ licitacao.valor_estimado|floatformat:2|intcomma }}
-                    {% else %}-{% endif %}
+                    {% else %}
+                        -
+                    {% endif %}
                 </td>
+                
                 <td>
                     <span class="badge 
                         {% if licitacao.status == 'novo' %}status-novo
@@ -191,11 +197,11 @@
                         {{ licitacao.get_status_display }}
                     </span>
                 </td>
-                
+
                 <td>
-                    {% if licitacao.arquivo or licitacao.anexos.exists %}
+                    {% if licitacao.anexos.exists %}
                         <button class="btn-docs" onclick="abrirModal('modal-{{ licitacao.id }}')">
-                            📂 Documentos
+                            📂 Documentos ({{ licitacao.anexos.count }})
                         </button>
                     {% else %}
                         <span style="color: #ccc; font-size: 0.85rem;">Sem arquivos</span>
@@ -205,25 +211,10 @@
                         <div class="modal-content">
                             <button class="btn-close-modal" onclick="fecharModal('modal-{{ licitacao.id }}')">&times;</button>
                             
-                            <h3 style="color: var(--azul-profundo); margin-bottom: 5px;">Documentos do Processo</h3>
-                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">{{ licitacao.titulo }} - {{ licitacao.orgao }}</p>
+                            <h3 style="color: var(--azul-profundo); margin-bottom: 5px;">Arquivos do Processo</h3>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">{{ licitacao.titulo }}</p>
 
                             <ul class="doc-list">
-                                {% if licitacao.arquivo %}
-                                <li>
-                                    <a href="{{ licitacao.arquivo.url }}" target="_blank" style="text-decoration: none;">
-                                        <div class="doc-item">
-                                            <span class="doc-icon">📄</span>
-                                            <div class="doc-info">
-                                                <span class="doc-name">Edital Principal</span>
-                                                <span class="doc-type">Arquivo Original</span>
-                                            </div>
-                                            <span style="color: var(--ciano-eletrico);">⬇ Baixar</span>
-                                        </div>
-                                    </a>
-                                </li>
-                                {% endif %}
-
                                 {% for anexo in licitacao.anexos.all %}
                                 <li>
                                     <a href="{{ anexo.arquivo.url }}" target="_blank" style="text-decoration: none;">
@@ -231,9 +222,9 @@
                                             <span class="doc-icon">📎</span>
                                             <div class="doc-info">
                                                 <span class="doc-name">{{ anexo.descricao }}</span>
-                                                <span class="doc-type">Anexo Extra</span>
+                                                <span class="doc-type">Documento Anexo</span>
                                             </div>
-                                            <span style="color: #666;">⬇ Baixar</span>
+                                            <span style="color: var(--ciano-eletrico);">⬇ Baixar</span>
                                         </div>
                                     </a>
                                 </li>
@@ -244,7 +235,9 @@
                     </td>
 
                 <td>
-                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">Ver / Editar</a>
+                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">
+                        Ver / Editar
+                    </a>
                 </td>
             </tr>
             {% endfor %}
