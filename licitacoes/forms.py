@@ -40,6 +40,31 @@ class ClienteForm(forms.ModelForm):
         for field in self.fields:
             self.fields[field].widget.attrs.update({'class': 'form-input'})
 
+class RelatorioForm(forms.Form):
+    data_inicio = forms.DateField(
+        label="De:",
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    data_fim = forms.DateField(
+        label="Até:",
+        required=False,
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'})
+    )
+    status = forms.ChoiceField(
+        label="Status:",
+        choices=[('', 'Todos os Status')] + Licitacao.STATUS_CHOICES, # Adiciona opção "Todos"
+        required=False,
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    cliente = forms.ModelChoiceField(
+        label="Cliente:",
+        queryset=Cliente.objects.all(),
+        required=False,
+        empty_label="Todos os Clientes",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
 # Isso cria um "pacote" de formulários de Anexo ligados à Licitação
 AnexosFormSet = inlineformset_factory(
     Licitacao,

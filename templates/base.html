@@ -94,26 +94,31 @@
         <div class="menu">
             <ul>
                 <li>
-                    <a href="{% url 'dashboard' %}" 
+                    <a href="{% url 'dashboard' %}"
                        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
                         <span class="menu-icon">📊</span> Dashboard
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'listar_licitacoes' %}" 
+                    <a href="{% url 'listar_licitacoes' %}"
                        class="{% if request.resolver_match.url_name == 'listar_licitacoes' %}active{% endif %}">
                         <span class="menu-icon">🚀</span> Licitações
                     </a>
                 </li>
 
                 <li>
-                    <a href="{% url 'listar_clientes' %}" 
+                    <a href="{% url 'listar_clientes' %}"
                     class="{% if 'clientes' in request.path %}active{% endif %}">
                         <span class="menu-icon">🏢</span> Clientes/Órgãos
                     </a>
                 </li>
-                <li><a href="#"><span class="menu-icon">📄</span> Relatórios</a></li>
+                <li>
+                    <a href="{% url 'relatorios' %}"
+                    class="{% if 'relatorios' in request.path %}active{% endif %}">
+                        <span class="menu-icon">📄</span> Relatórios
+                    </a>
+                </li>
                 <li><a href="#"><span class="menu-icon">⚙️</span> Configurações</a></li>
             </ul>
         </div>

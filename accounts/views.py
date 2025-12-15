@@ -1,93 +1,66 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
-from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout # <--- Novos imports
-from django.contrib.auth.decorators import login_required # Importante!
-from django.db.models import Sum # <--- Para somar valores
-from licitacoes.models import Licitacao # <--- Importamos nosso modelo!
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
+from licitacoes.models import Licitacao
+from django.db.models import Sum
+from django.utils import timezone
 
-# View de Cadastro (Mantenha como estava)
+# --- 1. FUNÇÕES DE LOGIN/REGISTRO (QUE ESTAVAM FALTANDO) ---
+
 def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard') # Se já estiver logado, joga pro painel (vamos criar em breve)
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            login(request, form.save())
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+    return render(request, 'accounts/register.html', {'form': form})
 
-    if request.method == "POST":
-        nome = request.POST.get('nome')
-        email = request.POST.get('email')
-        cargo = request.POST.get('cargo')
-        senha = request.POST.get('senha')
-
-        if User.objects.filter(username=email).exists():
-            messages.error(request, 'Este e-mail já está cadastrado.')
-            return redirect('register')
-        
-        try:
-            # Criamos o usuário usando o email como username
-            user = User.objects.create_user(username=email, email=email, password=senha)
-            user.first_name = nome
-            user.save()
-            messages.success(request, 'Conta criada! Faça login.')
-            return redirect('login') # Agora redireciona para o login
-            
-        except Exception as e:
-            messages.error(request, f'Erro ao criar conta: {str(e)}')
-            return redirect('register')
-
-    return render(request, 'accounts/register.html')
-
-# --- NOVA VIEW DE LOGIN ---
 def login_view(request):
-    if request.user.is_authenticated:
-        return redirect('dashboard') # Se já logou, não precisa ver login
+    if request.method == 'POST':
+        form = AuthenticationForm(data=request.POST)
+        if form.is_valid():
+            login(request, form.get_user())
+            return redirect('dashboard')
+    else:
+        form = AuthenticationForm()
+    return render(request, 'accounts/login.html', {'form': form})
 
-    if request.method == "POST":
-        email = request.POST.get('email')
-        senha = request.POST.get('senha')
-
-        # O Django verifica as credenciais
-        # Lembra que salvamos o email no campo 'username'? Por isso username=email
-        user = authenticate(request, username=email, password=senha)
-
-        if user is not None:
-            login(request, user)
-            # messages.success(request, f'Bem-vindo, {user.first_name}!')
-            return redirect('dashboard') # Vai para a home do sistema (futura)
-        else:
-            messages.error(request, 'E-mail ou senha inválidos.')
-            return redirect('login')
-
-    return render(request, 'accounts/login.html')
-
-# --- NOVA VIEW DE LOGOUT ---
 def logout_view(request):
     logout(request)
-    messages.info(request, 'Você saiu do sistema.')
     return redirect('login')
+
+# --- 2. FUNÇÃO DO DASHBOARD (COM OS DADOS PARA O GRÁFICO) ---
 
 @login_required
 def dashboard_view(request):
-    print("--- INICIANDO O DASHBOARD ---") # Vai aparecer no terminal
-    
-    # 1. Total
+    # Totais Gerais
     total_licitacoes = Licitacao.objects.count()
-    print(f"Total encontrado: {total_licitacoes}")
-
-    # 2. Soma (Ganho)
-    soma = Licitacao.objects.filter(status='ganhamos').aggregate(Sum('valor_estimado'))
-    total_ganho = soma['valor_estimado__sum']
-    print(f"Soma bruta do banco: {total_ganho}")
-
-    if total_ganho is None:
-        total_ganho = 0
     
-    # 3. Pendentes
-    pendentes = Licitacao.objects.filter(status__in=['analise', 'documentacao']).count()
-    print(f"Pendentes: {pendentes}")
+    # Soma (tratando caso seja None)
+    total_ganho = Licitacao.objects.filter(status='ganhamos').aggregate(Sum('valor_estimado'))['valor_estimado__sum'] or 0
+    
+    # Contagens para o Gráfico
+    em_andamento = Licitacao.objects.filter(status__in=['novo', 'analise', 'participando']).count()
+    ganhas_count = Licitacao.objects.filter(status='ganhamos').count()
+    perdidas_count = Licitacao.objects.filter(status='perdemos').count()
 
-    contexto = {
+    # Agenda (Próximas datas)
+    proximas_disputas = Licitacao.objects.filter(
+        data_abertura__gte=timezone.now(),
+        status__in=['novo', 'participando']
+    ).order_by('data_abertura')[:5]
+
+    context = {
         'total_licitacoes': total_licitacoes,
         'total_ganho': total_ganho,
-        'pendentes': pendentes
+        'em_andamento': em_andamento,
+        'ganhas_count': ganhas_count,
+        'perdidas_count': perdidas_count,
+        'andamento_count': em_andamento,
+        'proximas_disputas': proximas_disputas
     }
     
-    return render(request, 'dashboard.html', contexto)
+    return render(request, 'dashboard.html', context)

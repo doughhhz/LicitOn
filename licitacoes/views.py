@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Licitacao, Anexo, Cliente
-from .forms import LicitacaoForm, AnexosFormSet, ClienteForm
-from django.db.models import Q
+from .forms import LicitacaoForm, AnexosFormSet, ClienteForm, RelatorioForm
+from django.db.models import Q, Sum
 
 @login_required
 def listar_licitacoes(request):
@@ -100,3 +100,44 @@ def cadastrar_cliente(request):
         form = ClienteForm()
     
     return render(request, 'clientes/cadastrar.html', {'form': form})
+
+@login_required
+def relatorios_view(request):
+    form = RelatorioForm(request.GET or None)
+    licitacoes = Licitacao.objects.all().order_by('data_abertura')
+    
+    # Variáveis de Totais
+    total_itens = 0
+    total_valor = 0
+    filtro_ativo = False
+
+    # Só aplica filtros se o usuário clicou em "Gerar Relatório" (tem parâmetros GET)
+    if request.GET:
+        filtro_ativo = True
+        
+        if form.is_valid():
+            data_inicio = form.cleaned_data.get('data_inicio')
+            data_fim = form.cleaned_data.get('data_fim')
+            status = form.cleaned_data.get('status')
+            cliente = form.cleaned_data.get('cliente')
+
+            if data_inicio:
+                licitacoes = licitacoes.filter(data_abertura__date__gte=data_inicio)
+            if data_fim:
+                licitacoes = licitacoes.filter(data_abertura__date__lte=data_fim)
+            if status:
+                licitacoes = licitacoes.filter(status=status)
+            if cliente:
+                licitacoes = licitacoes.filter(cliente=cliente)
+
+    # Calcula os totais DEPOIS de filtrar
+    total_itens = licitacoes.count()
+    total_valor = licitacoes.aggregate(Sum('valor_estimado'))['valor_estimado__sum'] or 0
+
+    return render(request, 'licitacoes/relatorios.html', {
+        'form': form,
+        'licitacoes': licitacoes,
+        'total_itens': total_itens,
+        'total_valor': total_valor,
+        'filtro_ativo': filtro_ativo
+    })
