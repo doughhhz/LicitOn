@@ -21,6 +21,7 @@ class Licitacao(models.Model):
         ('cotacao', 'Cotação Eletrônica'),
     ]
 
+    # Arquivo Principal (Edital)
     arquivo = models.FileField("Edital / Arquivo", upload_to='editais/', blank=True, null=True)
 
     # Campos Principais
@@ -50,4 +51,16 @@ class Licitacao(models.Model):
     class Meta:
         verbose_name = "Licitação"
         verbose_name_plural = "Licitações"
-        ordering = ['-data_abertura'] # Ordena sempre pela data mais recente
+        ordering = ['-data_abertura']
+
+
+# --- ATENÇÃO: A CLASSE ANEXO COMEÇA AQUI, ENCOSTADA NA MARGEM ESQUERDA ---
+class Anexo(models.Model):
+    # O conteúdo da classe tem indentação (TAB)
+    licitacao = models.ForeignKey(Licitacao, on_delete=models.CASCADE, related_name='anexos')
+    arquivo = models.FileField("Arquivo Anexo", upload_to='anexos/')
+    descricao = models.CharField("Nome do Arquivo", max_length=100, help_text="Ex: Planilha de Custos, Projeto Básico")
+    enviado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.descricao

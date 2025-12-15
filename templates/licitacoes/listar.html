@@ -5,53 +5,127 @@
 
 {% block content %}
 <style>
-    /* Estilos da Tabela */
+    /* --- Estilos Gerais da Tabela --- */
     .table-container {
         background: white;
         padding: 25px;
         border-radius: 12px;
         box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     }
-
     .header-action {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
+        display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
     }
-
     .btn-novo {
-        background-color: var(--ciano-eletrico);
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: 0.3s;
+        background-color: var(--ciano-eletrico); color: white; padding: 10px 20px;
+        border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s;
     }
     .btn-novo:hover { background-color: var(--azul-profundo); }
 
     table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-    
     th { text-align: left; padding: 15px; color: #666; font-size: 0.85rem; border-bottom: 2px solid #f0f0f0; }
-    td { padding: 15px; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 0.95rem; }
-    
+    td { padding: 15px; border-bottom: 1px solid #f0f0f0; color: #333; font-size: 0.95rem; vertical-align: middle; }
     tr:hover { background-color: #f9f9f9; }
 
-    /* Badges de Status (Etiquetas Coloridas) */
-    .badge {
-        padding: 5px 10px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        text-transform: uppercase;
+    /* Badges de Status */
+    .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
+    .status-novo { background-color: #e3f2fd; color: #0d47a1; }
+    .status-ganhamos { background-color: #d4edda; color: #155724; }
+    .status-perdemos { background-color: #f8d7da; color: #721c24; }
+    .status-analise { background-color: #fff3cd; color: #856404; }
+    .status-padrao { background-color: #e2e3e5; color: #383d41; }
+
+    /* --- BARRA DE PESQUISA --- */
+    .filter-bar {
+        background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;
+        display: flex; gap: 10px; flex-wrap: wrap; border: 1px solid #e9ecef;
     }
+    .filter-input, .filter-select { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; font-size: 0.9rem; outline: none; }
+    .filter-input { flex-grow: 1; min-width: 200px; }
+    .btn-filtrar { background-color: var(--azul-profundo); color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: bold; }
+    .btn-limpar { display: flex; align-items: center; color: #666; text-decoration: none; font-size: 0.9rem; padding: 0 10px; }
+    .btn-limpar:hover { color: #dc3545; }
+
+    /* --- NOVO: BOTÃO DE DOCUMENTOS --- */
+    .btn-docs {
+        background-color: white;
+        border: 1px solid #ddd;
+        color: #555;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .btn-docs:hover {
+        background-color: #f0f0f0;
+        border-color: #bbb;
+        color: #333;
+    }
+
+    /* --- NOVO: MODAL ESTILO VIDRO (GLASSMORPHISM) --- */
+    .modal-backdrop {
+        display: none; /* Escondido por padrão */
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4); /* Escurece o fundo */
+        backdrop-filter: blur(8px); /* O EFEITO DE DESFOQUE MÁGICO */
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .modal-active {
+        display: flex !important;
+        opacity: 1;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 30px;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+        position: relative;
+    }
+
+    .modal-active .modal-content {
+        transform: scale(1);
+    }
+
+    .doc-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 15px;
+    }
+
+    .doc-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-bottom: 1px solid #eee;
+        transition: 0.2s;
+    }
+    .doc-item:hover { background-color: #f9fbfd; border-radius: 8px; }
+    .doc-item:last-child { border-bottom: none; }
     
-    .status-novo { background-color: #e3f2fd; color: #0d47a1; } /* Azul */
-    .status-ganhamos { background-color: #d4edda; color: #155724; } /* Verde */
-    .status-perdemos { background-color: #f8d7da; color: #721c24; } /* Vermelho */
-    .status-analise { background-color: #fff3cd; color: #856404; } /* Amarelo */
-    .status-padrao { background-color: #e2e3e5; color: #383d41; } /* Cinza */
+    .doc-icon { font-size: 1.5rem; margin-right: 12px; }
+    .doc-info { flex-grow: 1; }
+    .doc-name { font-weight: bold; display: block; color: #333; font-size: 0.9rem; }
+    .doc-type { font-size: 0.75rem; color: #888; text-transform: uppercase; }
+
+    .btn-close-modal {
+        position: absolute; top: 15px; right: 15px;
+        background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;
+    }
+    .btn-close-modal:hover { color: #333; }
 
 </style>
 
@@ -61,70 +135,28 @@
         <a href="{% url 'criar_licitacao' %}" class="btn-novo">+ Nova Licitação</a>
     </div>
 
-    <style>
-    /* Estilo da Barra de Filtros */
-    .filter-bar {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap; /* Quebra linha se a tela for pequena */
-        border: 1px solid #e9ecef;
-    }
-
-    .filter-input, .filter-select {
-        padding: 10px;
-        border: 1px solid #ced4da;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        outline: none;
-    }
-
-    .filter-input { flex-grow: 1; min-width: 200px; } /* A barra de texto estica */
-    
-    .btn-filtrar {
-        background-color: var(--azul-profundo);
-        color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: bold;
-    }
-    .btn-filtrar:hover { background-color: #0d2d53; }
-
-    .btn-limpar {
-        display: flex; align-items: center; color: #666; text-decoration: none; font-size: 0.9rem; padding: 0 10px;
-    }
-    .btn-limpar:hover { color: #dc3545; }
-</style>
-
-<form method="GET" class="filter-bar">
-    
-    <input type="text" name="q" class="filter-input" 
-           placeholder="Buscar por Edital, Órgão ou Objeto..." 
-           value="{{ busca_atual|default:'' }}">
-
-    <select name="status" class="filter-select">
-        <option value="">Todos os Status</option>
-        <option value="novo" {% if status_atual == 'novo' %}selected{% endif %}>Novo Edital</option>
-        <option value="analise" {% if status_atual == 'analise' %}selected{% endif %}>Em Análise</option>
-        <option value="participando" {% if status_atual == 'participando' %}selected{% endif %}>Aguardando Disputa</option>
-        <option value="ganhamos" {% if status_atual == 'ganhamos' %}selected{% endif %}>Ganhamos 🏆</option>
-        <option value="perdemos" {% if status_atual == 'perdemos' %}selected{% endif %}>Perdemos</option>
-    </select>
-
-    <select name="modalidade" class="filter-select">
-        <option value="">Todas as Modalidades</option>
-        <option value="pregao_eletronico" {% if modalidade_atual == 'pregao_eletronico' %}selected{% endif %}>Pregão Eletrônico</option>
-        <option value="pregao_presencial" {% if modalidade_atual == 'pregao_presencial' %}selected{% endif %}>Pregão Presencial</option>
-        <option value="concorrencia" {% if modalidade_atual == 'concorrencia' %}selected{% endif %}>Concorrência</option>
-        <option value="dispensa" {% if modalidade_atual == 'dispensa' %}selected{% endif %}>Dispensa</option>
-    </select>
-
-    <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
-    
-    {% if busca_atual or status_atual or modalidade_atual %}
-        <a href="{% url 'listar_licitacoes' %}" class="btn-limpar">✖ Limpar</a>
-    {% endif %}
-</form>
+    <form method="GET" class="filter-bar">
+        <input type="text" name="q" class="filter-input" placeholder="Buscar por Edital, Órgão ou Objeto..." value="{{ busca_atual|default:'' }}">
+        <select name="status" class="filter-select">
+            <option value="">Todos os Status</option>
+            <option value="novo" {% if status_atual == 'novo' %}selected{% endif %}>Novo Edital</option>
+            <option value="analise" {% if status_atual == 'analise' %}selected{% endif %}>Em Análise</option>
+            <option value="participando" {% if status_atual == 'participando' %}selected{% endif %}>Aguardando Disputa</option>
+            <option value="ganhamos" {% if status_atual == 'ganhamos' %}selected{% endif %}>Ganhamos 🏆</option>
+            <option value="perdemos" {% if status_atual == 'perdemos' %}selected{% endif %}>Perdemos</option>
+        </select>
+        <select name="modalidade" class="filter-select">
+            <option value="">Todas as Modalidades</option>
+            <option value="pregao_eletronico" {% if modalidade_atual == 'pregao_eletronico' %}selected{% endif %}>Pregão Eletrônico</option>
+            <option value="pregao_presencial" {% if modalidade_atual == 'pregao_presencial' %}selected{% endif %}>Pregão Presencial</option>
+            <option value="concorrencia" {% if modalidade_atual == 'concorrencia' %}selected{% endif %}>Concorrência</option>
+            <option value="dispensa" {% if modalidade_atual == 'dispensa' %}selected{% endif %}>Dispensa</option>
+        </select>
+        <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+        {% if busca_atual or status_atual or modalidade_atual %}
+            <a href="{% url 'listar_licitacoes' %}" class="btn-limpar">✖ Limpar</a>
+        {% endif %}
+    </form>
 
     {% if licitacoes %}
     <table>
@@ -135,27 +167,20 @@
                 <th>DATA DISPUTA</th>
                 <th>VALOR ESTIMADO</th>
                 <th>STATUS</th>
-                <th>ARQUIVO</th>
-                <th>AÇÕES</th>
+                <th>ARQUIVOS</th> <th>AÇÕES</th>
             </tr>
         </thead>
         <tbody>
             {% for licitacao in licitacoes %}
             <tr>
                 <td style="font-weight: bold; color: var(--azul-profundo);">{{ licitacao.titulo }}</td>
-                
                 <td>{{ licitacao.orgao }}</td>
-                
                 <td>{{ licitacao.data_abertura|date:"d/m/Y H:i" }}</td>
-                
                 <td>
                     {% if licitacao.valor_estimado %}
                         R$ {{ licitacao.valor_estimado|floatformat:2|intcomma }}
-                    {% else %}
-                        -
-                    {% endif %}
+                    {% else %}-{% endif %}
                 </td>
-                
                 <td>
                     <span class="badge 
                         {% if licitacao.status == 'novo' %}status-novo
@@ -166,28 +191,85 @@
                         {{ licitacao.get_status_display }}
                     </span>
                 </td>
-
+                
                 <td>
-                    {% if licitacao.arquivo %}
-                        <a href="{{ licitacao.arquivo.url }}" target="_blank" style="color: #d63384; font-weight: bold; text-decoration: none;">
-                            📄 Baixar
-                        </a>
+                    {% if licitacao.arquivo or licitacao.anexos.exists %}
+                        <button class="btn-docs" onclick="abrirModal('modal-{{ licitacao.id }}')">
+                            📂 Documentos
+                        </button>
                     {% else %}
-                        <span style="color: #ccc;">-</span>
+                        <span style="color: #ccc; font-size: 0.85rem;">Sem arquivos</span>
                     {% endif %}
-                </td>
+
+                    <div id="modal-{{ licitacao.id }}" class="modal-backdrop" onclick="fecharNoFundo(event, 'modal-{{ licitacao.id }}')">
+                        <div class="modal-content">
+                            <button class="btn-close-modal" onclick="fecharModal('modal-{{ licitacao.id }}')">&times;</button>
+                            
+                            <h3 style="color: var(--azul-profundo); margin-bottom: 5px;">Documentos do Processo</h3>
+                            <p style="color: #666; font-size: 0.9rem; margin-bottom: 20px;">{{ licitacao.titulo }} - {{ licitacao.orgao }}</p>
+
+                            <ul class="doc-list">
+                                {% if licitacao.arquivo %}
+                                <li>
+                                    <a href="{{ licitacao.arquivo.url }}" target="_blank" style="text-decoration: none;">
+                                        <div class="doc-item">
+                                            <span class="doc-icon">📄</span>
+                                            <div class="doc-info">
+                                                <span class="doc-name">Edital Principal</span>
+                                                <span class="doc-type">Arquivo Original</span>
+                                            </div>
+                                            <span style="color: var(--ciano-eletrico);">⬇ Baixar</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endif %}
+
+                                {% for anexo in licitacao.anexos.all %}
+                                <li>
+                                    <a href="{{ anexo.arquivo.url }}" target="_blank" style="text-decoration: none;">
+                                        <div class="doc-item">
+                                            <span class="doc-icon">📎</span>
+                                            <div class="doc-info">
+                                                <span class="doc-name">{{ anexo.descricao }}</span>
+                                                <span class="doc-type">Anexo Extra</span>
+                                            </div>
+                                            <span style="color: #666;">⬇ Baixar</span>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    </td>
 
                 <td>
-                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">
-                        Ver / Editar
-                    </a>
+                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">Ver / Editar</a>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
     {% else %}
-        <p style="text-align: center; color: #666; padding: 20px;">Nenhuma licitação cadastrada ainda.</p>
+        <p style="text-align: center; color: #666; padding: 20px;">Nenhuma licitação encontrada.</p>
     {% endif %}
 </div>
+
+<script>
+    function abrirModal(modalId) {
+        document.getElementById(modalId).classList.add('modal-active');
+    }
+
+    function fecharModal(modalId) {
+        document.getElementById(modalId).classList.remove('modal-active');
+    }
+
+    // Fecha se clicar na parte escura (fora da caixa branca)
+    function fecharNoFundo(event, modalId) {
+        if (event.target.id === modalId) {
+            fecharModal(modalId);
+        }
+    }
+</script>
+
 {% endblock %}

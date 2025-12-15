@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .models import Licitacao
-from .forms import LicitacaoForm
+from .forms import LicitacaoForm, AnexosFormSet
 from django.db.models import Q
 
 @login_required
@@ -54,17 +54,27 @@ def criar_licitacao(request):
 
 @login_required
 def editar_licitacao(request, id):
-    # Tenta buscar a licitação pelo ID. Se não achar, dá erro 404.
     licitacao = get_object_or_404(Licitacao, pk=id)
+    
+    if request.method == 'POST':
+        form = LicitacaoForm(request.POST, request.FILES, instance=licitacao)
+        # O FormSet gerencia os anexos vinculados a esta licitação
+        formset = AnexosFormSet(request.POST, request.FILES, instance=licitacao)
+        
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            return redirect('listar_licitacoes')
+            
+    else:
+        form = LicitacaoForm(instance=licitacao)
+        formset = AnexosFormSet(instance=licitacao)
 
-    # Carrega o formulário PREENCHIDO com os dados que já existem (instance=licitacao)
-    form = LicitacaoForm(request.POST, request.FILES, instance=licitacao)
-
-    if form.is_valid():
-        form.save()
-        return redirect('listar_licitacoes')
-
-    return render(request, 'licitacoes/editar.html', {'form': form, 'licitacao': licitacao})
+    return render(request, 'licitacoes/editar.html', {
+        'form': form, 
+        'formset': formset, # Enviamos o conjunto de anexos para o HTML
+        'licitacao': licitacao
+    })
 
 @login_required
 def excluir_licitacao(request, id):

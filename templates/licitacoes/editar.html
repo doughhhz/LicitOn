@@ -18,31 +18,66 @@
     
     .btn-salvar {
         background-color: var(--ciano-eletrico);
-        color: white; padding: 12px 30px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%;
+        color: white; padding: 12px 30px; border: none; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 20px;
     }
+    .btn-salvar:hover { background-color: var(--azul-profundo); }
+
     .btn-cancelar { display: block; margin-top: 15px; text-align: center; color: #666; text-decoration: none; }
     
     .btn-excluir {
-    display: block;
-    width: 100%;
-    text-align: center;
-    background-color: white;
-    color: #dc3545; /* Vermelho */
-    border: 2px solid #dc3545;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    text-decoration: none;
-    margin-top: 20px;
-    transition: 0.3s;
+        display: block; width: 100%; text-align: center; background-color: white; color: #dc3545; border: 2px solid #dc3545;
+        padding: 10px; border-radius: 8px; font-weight: bold; text-decoration: none; margin-top: 20px; transition: 0.3s;
     }
-    .btn-excluir:hover {
-        background-color: #dc3545;
-        color: white;
-    }
-    /* Header com Status */
+    .btn-excluir:hover { background-color: #dc3545; color: white; }
+    
     .edit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
     .status-tag { background: #eee; padding: 5px 15px; border-radius: 20px; font-size: 0.85rem; font-weight: bold; }
+
+    /* ESTILO NOVO: ACCORDION DE DOCUMENTOS */
+    details.docs-accordion {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        margin-top: 30px;
+        overflow: hidden;
+    }
+
+    details.docs-accordion summary {
+        padding: 15px;
+        font-weight: bold;
+        cursor: pointer;
+        color: var(--azul-profundo);
+        display: flex;
+        align-items: center;
+        list-style: none; /* Remove a setinha padrão feia */
+        transition: 0.2s;
+    }
+    
+    details.docs-accordion summary:hover { background-color: #e2e6ea; }
+    
+    details.docs-accordion summary::after {
+        content: '+'; 
+        margin-left: auto; 
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    details.docs-accordion[open] summary::after { content: '-'; }
+    details.docs-accordion[open] summary { border-bottom: 1px solid #ddd; }
+
+    .docs-content { padding: 20px; }
+
+    .anexo-card {
+        background: white;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        align-items: flex-start;
+    }
 </style>
 
 <div class="form-container">
@@ -55,23 +90,84 @@
         {% csrf_token %}
         
         {% for field in form %}
-        <div class="form-group">
-            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}
-                <div style="color: red;">{{ field.errors }}</div>
+            {% if field.name != 'arquivo' %} 
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                    <div style="color: red;">{{ field.errors }}</div>
+                {% endif %}
+            </div>
             {% endif %}
-        </div>
         {% endfor %}
 
-        <button type="submit" class="btn-salvar">Salvar Alterações</button>
+        <details class="docs-accordion">
+            <summary>📂 Documentos & Anexos (Clique para Gerenciar)</summary>
+            
+            <div class="docs-content">
+                
+                <div class="anexo-card" style="border-left: 4px solid var(--ciano-eletrico);">
+                    <div style="flex: 1;">
+                        <label>📄 Edital Principal / Arquivo Mestre</label>
+                        {{ form.arquivo }}
+                        {% if licitacao.arquivo %}
+                            <small style="display:block; margin-top:5px;">
+                                Atual: <a href="{{ licitacao.arquivo.url }}" target="_blank">{{ licitacao.arquivo.name }}</a>
+                            </small>
+                        {% endif %}
+                    </div>
+                </div>
 
-        <a href="{% url 'excluir_licitacao' licitacao.id %}"
-            class="btn-excluir"
-            onclick="return confirm('Tem certeza que deseja excluir esta licitação permanentemente?');">
-            🗑️ Excluir Licitação
-        </a>
+                <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+
+                <h4 style="margin-bottom: 15px; color: #666;">Anexos Extras (Planilhas, Mapas, etc)</h4>
+                
+                {{ formset.management_form }}
+
+                {% for anexo_form in formset %}
+                    <div class="anexo-item">
+                        {% for hidden in anexo_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        <div class="anexo-card">
+                            <div style="flex: 1; min-width: 200px;">
+                                <label>Nome do Anexo:</label>
+                                {{ anexo_form.descricao }} 
+                            </div>
+                            
+                            <div style="flex: 1; min-width: 200px;">
+                                <label>Arquivo:</label>
+                                {{ anexo_form.arquivo }}
+                                
+                                {% if anexo_form.instance.pk and anexo_form.instance.arquivo %}
+                                    <small style="display:block; margin-top:5px; color: #28a745;">
+                                        ✅ Arquivo salvo: <a href="{{ anexo_form.instance.arquivo.url }}" target="_blank">Ver arquivo</a>
+                                    </small>
+                                {% endif %}
+                            </div>
+
+                            {% if anexo_form.instance.pk %}
+                                <div style="display: flex; align-items: center; color: red; padding-top: 25px;">
+                                    <label style="cursor: pointer;">
+                                        {{ anexo_form.DELETE }} 🗑️ Excluir
+                                    </label>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </details>
+
+        <button type="submit" class="btn-salvar">Salvar Alterações</button>
         
+        <a href="{% url 'excluir_licitacao' licitacao.id %}" 
+           class="btn-excluir"
+           onclick="return confirm('Tem certeza que deseja excluir esta licitação permanentemente?');">
+           🗑️ Excluir Licitação
+        </a>
+
         <a href="{% url 'listar_licitacoes' %}" class="btn-cancelar">Voltar para a lista</a>
     </form>
 </div>
