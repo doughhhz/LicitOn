@@ -21,6 +21,8 @@ class Licitacao(models.Model):
         ('cotacao', 'Cotação Eletrônica'),
     ]
 
+    arquivo = models.FileField("Edital / Arquivo", upload_to='editais/', blank=True, null=True)
+
     # Campos Principais
     titulo = models.CharField("Identificador / Nº Edital", max_length=100, help_text="Ex: PE 90/2025")
     orgao = models.CharField("Órgão / Cliente", max_length=200, help_text="Ex: Prefeitura de Ponta Grossa")

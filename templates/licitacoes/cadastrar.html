@@ -64,7 +64,7 @@
 <div class="form-container">
     <h2 style="margin-bottom: 25px; color: var(--azul-profundo);">📝 Nova Licitação</h2>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         
         {% for field in form %}

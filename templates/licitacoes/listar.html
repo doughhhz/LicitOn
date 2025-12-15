@@ -61,6 +61,71 @@
         <a href="{% url 'criar_licitacao' %}" class="btn-novo">+ Nova Licitação</a>
     </div>
 
+    <style>
+    /* Estilo da Barra de Filtros */
+    .filter-bar {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap; /* Quebra linha se a tela for pequena */
+        border: 1px solid #e9ecef;
+    }
+
+    .filter-input, .filter-select {
+        padding: 10px;
+        border: 1px solid #ced4da;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+    }
+
+    .filter-input { flex-grow: 1; min-width: 200px; } /* A barra de texto estica */
+    
+    .btn-filtrar {
+        background-color: var(--azul-profundo);
+        color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: bold;
+    }
+    .btn-filtrar:hover { background-color: #0d2d53; }
+
+    .btn-limpar {
+        display: flex; align-items: center; color: #666; text-decoration: none; font-size: 0.9rem; padding: 0 10px;
+    }
+    .btn-limpar:hover { color: #dc3545; }
+</style>
+
+<form method="GET" class="filter-bar">
+    
+    <input type="text" name="q" class="filter-input" 
+           placeholder="Buscar por Edital, Órgão ou Objeto..." 
+           value="{{ busca_atual|default:'' }}">
+
+    <select name="status" class="filter-select">
+        <option value="">Todos os Status</option>
+        <option value="novo" {% if status_atual == 'novo' %}selected{% endif %}>Novo Edital</option>
+        <option value="analise" {% if status_atual == 'analise' %}selected{% endif %}>Em Análise</option>
+        <option value="participando" {% if status_atual == 'participando' %}selected{% endif %}>Aguardando Disputa</option>
+        <option value="ganhamos" {% if status_atual == 'ganhamos' %}selected{% endif %}>Ganhamos 🏆</option>
+        <option value="perdemos" {% if status_atual == 'perdemos' %}selected{% endif %}>Perdemos</option>
+    </select>
+
+    <select name="modalidade" class="filter-select">
+        <option value="">Todas as Modalidades</option>
+        <option value="pregao_eletronico" {% if modalidade_atual == 'pregao_eletronico' %}selected{% endif %}>Pregão Eletrônico</option>
+        <option value="pregao_presencial" {% if modalidade_atual == 'pregao_presencial' %}selected{% endif %}>Pregão Presencial</option>
+        <option value="concorrencia" {% if modalidade_atual == 'concorrencia' %}selected{% endif %}>Concorrência</option>
+        <option value="dispensa" {% if modalidade_atual == 'dispensa' %}selected{% endif %}>Dispensa</option>
+    </select>
+
+    <button type="submit" class="btn-filtrar">🔍 Filtrar</button>
+    
+    {% if busca_atual or status_atual or modalidade_atual %}
+        <a href="{% url 'listar_licitacoes' %}" class="btn-limpar">✖ Limpar</a>
+    {% endif %}
+</form>
+
     {% if licitacoes %}
     <table>
         <thead>
@@ -70,6 +135,7 @@
                 <th>DATA DISPUTA</th>
                 <th>VALOR ESTIMADO</th>
                 <th>STATUS</th>
+                <th>ARQUIVO</th>
                 <th>AÇÕES</th>
             </tr>
         </thead>
@@ -77,8 +143,11 @@
             {% for licitacao in licitacoes %}
             <tr>
                 <td style="font-weight: bold; color: var(--azul-profundo);">{{ licitacao.titulo }}</td>
+                
                 <td>{{ licitacao.orgao }}</td>
+                
                 <td>{{ licitacao.data_abertura|date:"d/m/Y H:i" }}</td>
+                
                 <td>
                     {% if licitacao.valor_estimado %}
                         R$ {{ licitacao.valor_estimado|floatformat:2|intcomma }}
@@ -86,6 +155,7 @@
                         -
                     {% endif %}
                 </td>
+                
                 <td>
                     <span class="badge 
                         {% if licitacao.status == 'novo' %}status-novo
@@ -96,8 +166,21 @@
                         {{ licitacao.get_status_display }}
                     </span>
                 </td>
+
                 <td>
-                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">Ver / Editar</a>
+                    {% if licitacao.arquivo %}
+                        <a href="{{ licitacao.arquivo.url }}" target="_blank" style="color: #d63384; font-weight: bold; text-decoration: none;">
+                            📄 Baixar
+                        </a>
+                    {% else %}
+                        <span style="color: #ccc;">-</span>
+                    {% endif %}
+                </td>
+
+                <td>
+                    <a href="{% url 'editar_licitacao' licitacao.id %}" style="color: var(--ciano-eletrico); font-weight: bold; text-decoration: none;">
+                        Ver / Editar
+                    </a>
                 </td>
             </tr>
             {% endfor %}

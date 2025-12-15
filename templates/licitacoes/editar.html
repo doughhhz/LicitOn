@@ -51,7 +51,7 @@
         <span class="status-tag">Atual: {{ licitacao.get_status_display }}</span>
     </div>
 
-    <form method="POST">
+    <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         
         {% for field in form %}
